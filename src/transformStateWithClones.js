@@ -17,11 +17,21 @@ function transformStateWithClones(state, actions) {
         break;
 
       case 'addProperties':
-        currentState = { ...currentState, ...action.extraData };
+        if (
+          action.extraData &&
+          typeof action.extraData === 'object' &&
+          !Array.isArray(action.extraData)
+        ) {
+          currentState = { ...currentState, ...action.extraData };
+        } else {
+          throw new Error(
+            `Invalid extraData for addProperties: ${JSON.stringify(action.extraData)}`,
+          );
+        }
         break;
 
       case 'removeProperties':
-        {
+        if (Array.isArray(action.keysToRemove)) {
           const newState = {};
 
           for (const key in currentState) {
@@ -30,6 +40,10 @@ function transformStateWithClones(state, actions) {
             }
           }
           currentState = newState;
+        } else {
+          throw new Error(
+            `Invalid keysToRemove for removeProperties: ${JSON.stringify(action.keysToRemove)}`,
+          );
         }
         break;
 
@@ -37,6 +51,7 @@ function transformStateWithClones(state, actions) {
         throw new Error(`Unknown action.type: ${action.type}`);
     }
 
+    // клон після кожної дії
     result.push({ ...currentState });
   }
 
